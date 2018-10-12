@@ -1,0 +1,1166 @@
+swagger: '2.0'
+info:
+  description: >-
+    A Payment service offered by TPPs for merchants to be intergrated with their
+    sites in order to request payment intiations on behalf of their customers
+  version: 1.0.0
+  title: Payment Initiation Service Provider
+  termsOfService: ''
+  contact:
+    email: openbankingdemo@wso2.com
+  license:
+    name: WSO2 Commercial License
+    url: 'http://wso2.com/licenses'
+host: www.openbanking.wso2.com
+basePath: /pisp/apis/v1.0
+tags:
+  - name: PISP
+    description: PSD2 PISP Application
+    externalDocs:
+      description: Find out more
+      url: 'http://#####'
+schemes:
+  - https
+  - http
+paths:
+  /e-shop/:
+    post:
+      tags:
+        - E-Shop management
+      summary: Add and register a new ecommerce site/ app
+      description: Admins of ecommerce sites/apps can register their sites/apps at pisp.
+      operationId: addNewEshop
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+      
+        - in: body
+          name: body
+          description: created new e-shop oject
+          required: true
+          schema:
+            $ref: '#/definitions/E_shop_profile'
+      responses:
+        '200':
+          description: E-Shop successfully registered
+          schema:
+            $ref: '#/definitions/e_shopRegistrationResponse'
+        '400':
+          description: Required parameters missing
+        '403':
+          description: Username already exists
+        '405':
+          description: Invalid input
+        '500':
+          description: unexpected error in the server
+  /e-shop/login:
+    post:
+      tags:
+        - E-Shop management
+      summary: E-shop admins login to the PISP system
+      description: ''
+      operationId: eshopLogin
+      produces:
+        - application/json
+      parameters:
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - in: body
+          name: body
+          description: login credentials of e-shop user
+          required: true
+          schema:
+            $ref: '#/definitions/LoginCredentials'
+      responses:
+        '200':
+          description: User login successful
+          headers:
+            Set-Cookie:
+              type: string
+              description: The session id issues by the server to uniquely identify the client.
+        '400':
+          description: Required parameters missing
+        '401':
+          description: Authentication failed
+        '403':
+          description: Invalid password supplied
+        '404':
+          description: Username not found
+        '500':
+          description: Unexpected error in server
+  /e-shop/{username}:
+    get:
+      tags:
+        - E-Shop management
+      summary: 'Get e-shop profile details by username'
+      description: Return requested e-shop profile Info
+      operationId: getEshopProfile
+      produces:
+        - application/json
+      parameters:
+        - name: username
+          in: path
+          description: username of the e-shop to be fetched
+          required: true
+          type: string
+        - name: Cookie
+          in: header
+          type: string
+          description: The session id is set in the cookie
+          enum:
+          - application/json
+          required: true
+      responses:
+        '200':
+          description: successfully retrieved the profile Information
+          schema:
+            $ref: '#/definitions/E_shop_profile'
+        '400':
+          description: Required parameter missing
+        '401':
+          description: Authentication failed
+        '404':
+          description: Username not found
+    put:
+      tags:
+        - E-Shop management
+      summary: Update e-shop profile details
+      description: This is to ecommerce site/app admins to update their profile details.
+      operationId: updateProfile
+      produces:
+        - application/json
+      parameters:
+        - name: username
+          in: path
+          description: username of the e-shop that need to be updated
+          required: true
+          type: string
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - name: Cookie
+          in: header
+          type: string
+          description: The session id is set in the cookie
+          enum:
+          - application/json
+          required: true
+        - in: body
+          name: body
+          description: Updated user object
+          required: true
+          schema:
+            $ref: '#/definitions/E_shop_profile'
+      responses:
+        '201':
+          description: E-shop profile successfully updated
+        '400':
+          description: Required parameters missing
+        '401':
+          description: Authentication failed
+        '404':
+          description: Username not found
+        '500':
+          description: Unexpected error in server
+    delete:
+      tags:
+        - E-Shop management
+      summary: Delete e-shop from pisp
+      description: This to ecommerce site/app admins to unregister their site from PISP.
+      operationId: deleteEshop
+      produces:
+        - application/json
+      parameters:
+        - name: username
+          in: path
+          description: The username that needs to be deleted
+          required: true
+          type: string
+        - name: Cookie
+          in: header
+          type: string
+          description: The session id is set in the cookie
+          enum:
+          - application/json
+          required: true
+      responses:
+        '200':
+          description: E-shop successfully deleted
+        '400':
+          description: Required parameters missing
+        '401':
+          description: Authentication failed
+        '404':
+          description: Username not found
+        '500':
+          description: Unexpected error in server   
+  /payment-history/{username}:
+    get:
+      tags:
+        - Report generation
+      summary: get payments history related to e-commerce site/app
+      description: Every registered e-shop can view its payments history
+      operationId: getPaymentReports
+      produces:
+        - application/json
+      parameters:
+        - name: username
+          in: path
+          description: username of the e-shop who requesting payment history reports
+          required: true
+          type: string
+        - name: filter
+          in: query
+          description: selected filter by the user
+          required: true
+          type: string
+          enum:
+            - all
+            - completed
+            - declined
+        - name: Cookie
+          in: header
+          type: string
+          description: The session id is set in the cookie
+          enum:
+          - application/json
+          required: true
+        - name: startDate
+          in: header
+          description: The start of time period which payment history is requested
+          required: true
+          type: string
+        - name: endDate
+          in: header
+          description: The end of time period which payment history is requested
+          type: string
+      responses:
+        '200':
+          description: successfully retrieved the payment history
+          schema:
+            $ref: '#/definitions/PaymentHistory'
+        '400':
+          description: Required parameter missing
+        '404':
+          description: Username not found
+        
+  /admin-user/login:
+    post:
+      tags:
+        - Admin Operation
+      summary: Log admin user to the PISP system
+      description: ''
+      operationId: loginAdminUser
+      produces:
+        - application/json
+      parameters:
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - in: body
+          name: body
+          description: Created admin user object
+          required: true
+          schema:
+            $ref: '#/definitions/LoginCredentials'
+      responses:
+        '200':
+          description: Admin User login successful
+          headers:
+            Set-Cookie:
+              type: string
+              description: The session id issues by the server to uniquely identify the client.
+        '400':
+          description: Required parameters missing
+        '403':
+          description: Invalid password supplied
+        '404':
+          description: Username not found
+        '500':
+          description: Unexpected error in server
+          
+  /admin-user/{username}:
+    put:
+      tags:
+        - Admin Operation
+      summary: Update ecommerce user details
+      description: This is to pisp admin to update his credentials.
+      operationId: updateAdminUser
+      produces:
+        - application/json
+      parameters:
+        - name: username
+          in: path
+          description: username of the admin user that need to be updated
+          required: true
+          type: string
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - name: Cookie
+          in: header
+          type: string
+          description: The session id is set in the cookie
+          enum:
+          - application/json
+          required: true
+        - in: body
+          name: body
+          description: Updated user object
+          required: true
+          schema:
+            $ref: '#/definitions/AdminUser'
+      responses:
+        '201':
+          description: Admin User successfully updated
+        '400':
+          description: Required parameters missing
+        '401':
+          description: Authentication failed
+        '404':
+          description: Username not found
+        '500':
+          description: Unexpected error in server
+
+        
+  /bank-connection/:
+    post:
+      tags:
+        - Admin Operation
+      summary: Add connection to a bank API
+      description: The PISP will register as a TPP in ASPSP and admins will add required details to the PISP system to connect with the bank exposed APIs
+      operationId: addBank
+      produces:
+        - application/json
+      parameters:
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - name: Cookie
+          in: header
+          type: string
+          description: The session id is set in the cookie
+          enum:
+          - application/json
+          required: true
+        - in: body
+          name: body
+          description: Information relevent to the bank
+          required: true
+          schema:
+            $ref: '#/definitions/BankInfo'
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Authentication failed
+        '403':
+          description: Invalid data supplied
+        '404':
+          description: Some required body parameters are missing
+        '500':
+          description: Unexpected error in server
+    get:
+      tags:
+        - Admin Operation
+      summary: get list of banks supported by PISP
+      operationId: getListOfBanks
+      produces:
+        - application/json
+      parameters:
+        - name: Cookie
+          in: header
+          type: string
+          description: The session id is set in the cookie
+          enum:
+          - application/json
+          required: true
+      responses:
+        '200':
+          description: successfully retrieved the payment history
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Bank_1'
+        '400':
+          description: Required parameter missing
+        '404':
+          description: Username not found
+
+    delete:
+      tags:
+        - Admin Operation
+      summary: Remove the bank from pisp service
+      description: This to pisp admins to remove a bank from its supported banks list.
+      operationId: removeBank
+      produces:
+        - application/json
+      parameters:
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - name: Cookie
+          in: header
+          type: string
+          description: The session id is set in the cookie
+          enum:
+          - application/json
+          required: true
+        - in: body
+          name: body
+          description: Information relevent to the bank
+          required: true
+          schema:
+            $ref: '#/definitions/Bank'
+      responses:
+        '200':
+          description: The bank successfully removed
+        '400':
+          description: Required parameters missing
+        '401':
+          description: Authentication failed
+        '404':
+          description: Username not found
+        '500':
+          description: Unexpected error in server   
+  /payments/:
+    post:
+      tags:
+        - Payment Processing
+      summary: Make a new payment initiation request
+      description: >-
+        The ecommerce site can make a payment initiation request onbehalf of
+        customer
+      operationId: reqPaymentInitiation
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - name: Client_Id
+          in: header
+          description: The unique id assigned to e-shop by PISPduring the registration.
+          required: true
+          type: string
+          pattern: ^(?!\s)(.*)(\S)$
+          maxLength: 40 
+        - name: purchase_id
+          in: header
+          description: The unique id assigned by the ecommerce site/app to uniquely identify a purchase which a payment will be proceeded.
+          required: true
+          type: string
+          pattern: ^(?!\s)(.*)(\S)$
+          maxLength: 40
+        - name: Authorization
+          in: header
+          type: string
+          description: Bearer Token
+          required: true
+        - in: body
+          name: body
+          description: created payment initiation request object
+          required: true
+          schema:
+            $ref: '#/definitions/paymentInitRequest'
+      responses:
+        '200':
+          description: Payment Initiation Request setup successful
+          headers:
+            purchase_id:
+              type: string
+              description: The unique id assigned by the ecommerce site/app to uniquely identify a purchase where a payment will proceed.
+          schema:
+            $ref: '#/definitions/paymentInitResponse'
+        '400':
+          description: Required parameters missing
+        '401':
+          description: Authentication failed
+        '404':
+          description: Ecommerce user not found
+        '405':
+          description: Invalid input
+        '500':
+          description: unexpected error in the server
+      security:
+        - EcommercePaymentsOAuth2Security : 
+          - payment-init-request
+  /payments/debtor-bank-account:
+    post:
+      tags:
+        - Payment Processing
+      summary: The customer selects a bank as debtor agent
+      description: The customer chooses his debtor account bank once he is redirected to pisp
+      operationId: selectBank
+      produces:
+        - application/json
+      parameters:
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - name: Payment_init_req_id
+          in: header
+          description: The payment_init_req_id which uniquely identify the payment resource relevent to the customer
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Information relevent to the bank selected by customer
+          required: true
+          schema:
+            $ref: '#/definitions/DeborBank_Account'
+      responses:
+        '200':
+          description: OK
+          headers:
+            payment_init_req_id:
+              type: string
+              description: The unique id of the related payment initiation.
+          schema:
+            $ref: '#/definitions/BankSelectionResponse'
+        '401':
+          description: Authentication failed
+        '403':
+          description: Invalid data supplied
+        '404':
+          description: Some required body parameters are missing
+        '500':
+          description: Unexpected error in server
+      security:
+        - api_key: []
+  /payments/{payment_init_req_id}:
+    get:
+      tags:
+        - Payment Processing
+      summary: 'query about a payment initiation request made '
+      description: Return a single payment-init-request object
+      operationId: getPaymentInitRequestById
+      produces:
+        - application/json
+      parameters:
+        - name: Content-Type
+          in: header
+          type: string
+          description: Chosen content type
+          enum:
+          - application/json
+          required: true
+        - name: payment_init_req_id
+          in: path
+          description: ID of payment init request as sent by PISP in the response for payment initation request
+          required: true
+          type: string
+        - name: Authorization
+          in: header
+          type: string
+          description: Bearer Token
+          required: true
+      responses:
+        '200':
+          description: successfully retrieved the details
+          headers:
+            purchase_id:
+              type: string
+              description: The unique id assigned by the ecommerce site/app to uniquely identify a purchase where a payment will proceed.
+          schema:
+            $ref: '#/definitions/paymentInitResponse'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: 'The requested payment_init_req_id not found '
+      security:
+        - EcommercePaymentsOAuth2Security : 
+          - payment-init-request
+definitions:
+  E_shop_profile:
+    type: object
+    properties:
+      e-shop_username:
+        type: string
+      e-shop_registration_no:
+        type: string
+        description: Reg number issued by a authorized institute
+      registered_bussiness_name:
+        type: string
+        description: Name used for registration
+      registered_country:
+        type: string
+      registered_authority:
+        type: string
+        description: The name of the registration authority
+      ecommerce_marketplace_category:
+        type: string
+        enum:
+          - single_vendor
+          - multi_vendor
+        description: Avaialble categories-single-vendor, multi-vendor. Should be selected as single-vendor if the owner of the site is the only merchant itself and multi-vendor if the site is hosting for multiple vendors.
+      merchant_category_code:
+        type: string
+        description: conditional. Only valid for single vendor.Category code conforms to ISO 18245, related to the type of services or goods the single vendor/merchant provides for the transaction
+      merchant_product_type:
+        type: string
+        description: conditional. Only valid for single vendor
+      merchant_bank:
+        $ref: '#/definitions/Bank'
+        
+      merchant_bank_account_data:
+        $ref: '#/definitions/BankAccount'
+      username:
+        type: string
+      password:
+        type: string
+      email:
+        type: string
+      redirect_link:
+        type: string
+        format: uri
+        description: Link URI to redirect the customer back to ecommerce sitr/app
+    required:
+      - e-shop_username
+      - e-shop_registration_no
+      - registered_country
+      - registered_authority
+      - ecommerce_marketplace_category
+      - username
+      - password
+      - email
+    xml:
+      name: e-shopProfile
+  e_shopRegistrationResponse:
+    type: object
+    properties:
+      e-shop_username:
+        type: string
+      cliend_id:
+        type: string
+        description: The client credentials needed to invoke payment API
+      client_secreat:
+        type: string
+        description: The client credentials needed to invoke payment API
+  LoginCredentials:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+    required:
+      - username
+      - password
+  PaymentHistory:
+    description: The payment history for the requested time period
+    type: array
+    items:
+      type: object
+      title: payment
+      properties:
+        purchase_id:
+          description: The unique id issued by e-shop to identify the purchase/payment.
+          type: string
+        payment_id:
+          description: The id for the payment issued by PISP
+          type: string
+        paymentStatus:
+          description: The status of the payment.
+          type: string
+          enum:
+            - completed
+            - declined
+        dateTime:
+          description: The time which the payment was commited
+          type: string
+        InstructedAmount:
+          description: >-
+            Amount of money to be moved between the debtor and creditor, before
+            deduction of charges, expressed in the currency as ordered by the
+            ecommerce site. Usage- This amount has to be transported unchanged
+            through the transaction chain.
+          type: object
+          properties:
+            Amount:
+              type: string
+              pattern: '^\d{1,13}\.\d{1,5}$'
+            Currency:
+              description: >-
+                A code allocated to a currency by a Maintenance Agency under an
+                international identification scheme, as described in the latest
+                edition of the international standard ISO 4217 - Codes for the
+                representation of currencies and funds.
+              type: string
+              pattern: '^[A-Z]{3,3}$'
+              required:
+                - Amount
+                - Currency
+        merchantName:
+          description: The name of the seller/merchant
+          type: string
+        merchantIdentificationNo:
+          description: The id of the seller/merchant issued by e-commerce site/app
+          type: string
+        merchant_account_data:
+          type: object
+          properties:
+            account_owner_name:
+              type: string
+            bank:
+              type: string
+            iban:
+              type: string 
+        customerName:
+          description: The name of the buyer/customer
+          type: string
+        customerIdentificationNo:
+          description: The id of the customer issued by e-commerce site/app
+          type: string
+        customer_account_data:
+          type: object
+          properties:
+            account_owner_name:
+              type: string
+            bank:
+              type: string
+            iban:
+              type: string 
+        ItemsPurchased:
+          description: The items purchased by the payer
+          type: array
+          items:
+            type: object
+            title: item
+            properties:
+              itemName:
+                description: The name of the item purchased
+                type: string
+              quantity: 
+                type: integer
+              price:
+                description: The price of a unit of item
+                type: object
+                properties:
+                  amount:
+                    type: string
+                    pattern: '^\d{1,13}\.\d{1,5}$'
+                  currency:
+                    type: string
+                    pattern: '^[A-Z]{3,3}$'
+                required:
+                  - amount
+                  - currency
+  AdminUser:
+    type: object
+    properties:
+      admin_username:
+        type: string
+        description: changed user name of admin user
+      password:
+        type: string
+        description: new password for admin user
+      email:
+        type: string
+  BankInfo:
+    type: object
+    properties:
+      bank:
+        $ref: '#/definitions/Bank'
+      specForOB:
+        type: string
+        description: The open banking specification followed by the bank
+        enum:
+          - UK
+          - BERLIN
+          - STET
+      client_id:
+        type: string
+        description: The production keys issued by bank to the PISP, once registered as a TPP and created an Application subscribing to payment API. Will be use in client credentials grant.
+      client_secreat:
+        type: string
+        description: The production keys issued by bank to the PISP, once registered as a TPP and created an Application subscribing to payment API of the bank. Will be use in client credentials grant.
+      linksToResources:
+        type: object
+        description: The required links can be optinal according to the spec followed by the bank
+        properties:
+          TokenAPI:
+            description: The base uri to access the Token API of the bank
+            type: string
+            format: uri
+          AuthorizeAPI:
+            description: The base uri to access the Authorize API of the bank
+            type: string
+            format: uri
+          PaymentAPI:
+            description: The base uri to access the payment API of the bank
+            type: string
+            format: uri
+          
+    required:
+      - bank
+      - specForOB
+      - consumer_key
+      - consumer_secreat
+      - linksToResources
+  Bank:
+    type: object
+    properties:
+      scheme_name:
+        description: 'Name of the identification scheme, in a coded form as published in an external list.'
+        title: scheme_name
+        type: string
+        enum:
+          - BICFI
+      Identification:
+        description: Unique and unambiguous identification of the bank under above scheme.
+        type: string
+        minLength: 1
+        maxLength: 35
+      bank_name:
+        description: The publicly referd name for the bank
+        type: string
+    required:
+      - scheme_name
+      - Identification
+      - bank_name
+  Bank_1:
+    type: object
+    properties:
+      bank_uid:
+        description: Unique and unambiguous identification of the bank under above scheme.
+        type: string
+        minLength: 1
+        maxLength: 35
+      bank_name:
+        description: The publicly referd name for the bank
+        type: string
+    required:
+      - Identification
+      - bank_name
+  BankAccount:
+    description: >-
+          conditional, only multivendor ecommerce users are required to provide
+          the account details. Unambiguous identification of the account of the merchant/creditor to which a credit entry will be made as a result of the payment.
+    type: object
+    properties:
+      scheme_name:
+        description: 'Name of the identification scheme, in a coded form as published in an external list.'
+        title: scheme_name
+        type: string
+        enum:
+          - IBAN
+      Identification:
+        description: Identification assigned by an institution to identify an account. This identification is known by the account owner.
+        type: string
+        minLength: 1
+        maxLength: 34
+      account_owner_name:
+          description: The name of the account owner
+          type: string
+    required:
+      - scheme_name
+      - Identification
+    
+  paymentInitRequest:
+    type: object
+    properties:
+      e-shop_username:
+        type: string
+        description: The username of ecommerce user as registered at PISP
+      merchant_endToEndidentification:
+        description: >-
+          conditional,only for multi vendor ecommerce sites/apps, The id of the
+          merchant/product seller as registered in ecommerce site/app.
+        type: string
+      merchant_name:
+        description: >-
+          conditional,only for multi vendor ecommerce users, The name of the
+          merchant/product seller as registered in ecommerce site
+        type: string
+      merchant_category_code_of_merchant:
+        type: string
+        description: >-
+          Category code of merchant conforms to ISO 18245, related to the type
+          of services or goods the single vendor/merchant provides for the
+          purchase
+      InstructedAmount:
+        description: >-
+          Amount of money to be moved between the debtor and creditor, before
+          deduction of charges, expressed in the currency as ordered by the
+          ecommerce site. Usage- This amount has to be transported unchanged
+          through the transaction chain.
+        type: object
+        properties:
+          Amount:
+            type: string
+            pattern: '^\d{1,13}\.\d{1,5}$'
+          Currency:
+            description: >-
+              A code allocated to a currency by a Maintenance Agency under an
+              international identification scheme, as described in the latest
+              edition of the international standard ISO 4217 - Codes for the
+              representation of currencies and funds.
+            type: string
+            pattern: '^[A-Z]{3,3}$'
+            required:
+              - Amount
+              - Currency
+      merchant_bank:
+        $ref: '#/definitions/Bank'
+        
+      merchant_bank_account_data:
+        $ref: '#/definitions/BankAccount'
+
+      customerIdentificationByE_shop: 
+        type: string
+        description: The ID used by ecommerce site/app to uniquely identify the customer who requested to initiate the payment
+      customerName:
+        type: string
+        description: The name of the customer as refered by the e-commerce site
+      ItemsPurchased:
+          description: The items purchased by the payer/customer
+          type: array
+          items:
+            type: object
+            title: item
+            properties:
+              itemCode:
+                description: The item code issued for the item purchased
+                type: string
+              quantity: 
+                type: integer
+              price:
+                description: The price of a unit of item
+                type: object
+                properties:
+                  currency: 
+                    type: string
+                  amount:
+                    type: number
+      DeliveryAddress:
+        description: >-
+          Information that locates and identifies a specific address, as defined
+          by postal services or in free format text.
+        type: object
+        properties:
+          AddressLine:
+            description: >-
+              Information that locates and identifies a specific address, as
+              defined by postal services, that is presented in free format text.
+            type: array
+            items:
+              description: maxLength 70 text
+              type: string
+              minLength: 1
+              maxLength: 70
+            minItems: 0
+            maxItems: 2
+          StreetName:
+            description: Name of a street or thoroughfare
+            type: string
+            minLength: 1
+            maxLength: 70
+          BuildingNumber:
+            description: Number that identifies the position of a building on a street.
+            type: string
+            minLength: 1
+            maxLength: 16
+          PostCode:
+            description: >-
+              Identifier consisting of a group of letters and/or numbers that is
+              added to a postal address to assist the sorting of mail
+            type: string
+            minLength: 1
+            maxLength: 16
+          TownName:
+            description: >-
+              Name of a built-up area, with defined boundaries, and a local
+              government.
+            type: string
+            minLength: 1
+            maxLength: 35
+          CountrySubDivision:
+            description: >-
+              Identifies a subdivision of a country, for instance state, region
+              county.
+            type: array
+            items:
+              description: maxLength 35 text
+              type: string
+              minLength: 1
+              maxLength: 35
+            minItems: 0
+            maxItems: 2
+          Country:
+            description: 'Nation with its own government, occupying a particular territory.'
+            type: string
+            pattern: '^[A-Z]{2,2}$'
+        required:
+          - TownName
+          - Country
+      redirectURI:
+        type: string
+        format: uri
+        description: Link URI 
+    required:
+      - username
+      - merchant_category_code_of_merchant
+      - InstructedAmount
+      - merchant_name
+      - merchant_bank
+      - merchant_bank_account_data
+      - redirectURI
+    xml:
+      name: User
+  paymentInitResponse:
+    type: object
+    properties:
+      payment_init_req_id:
+        type: string
+        description: The id created by PISP for a new payment init request created
+      payment_status:
+        type: string
+        description: The ststus of the payment initiation request during the process through PISP
+        enum:
+          - Received
+          - AccessedByDebtor
+          - Initialized
+          - Submitted
+          - Completed
+      username:
+        type: string
+        description: The username of ecommerce user as registered at PISP
+      merchant_category_code_of_merchant:
+        type: string
+        description: >-
+          Category code of merchant conforms to ISO 18245, related to the type
+          of services or goods the single vendor/merchant provides for the
+          purchase
+      EndToEndIdentificationOfPayment:
+        type: string
+        description: >-
+          The id issued by the ecommerce site to uniquely identify the initiated
+          payment.
+      InstructedAmount:
+        description: >-
+          Amount of money to be moved between the debtor and creditor, before
+          deduction of charges, expressed in the currency as ordered by the
+          ecommerce site. Usage- This amount has to be transported unchanged
+          through the transaction chain.
+        type: object
+        properties:
+          Amount:
+            type: string
+            pattern: '^\d{1,13}\.\d{1,5}$'
+          Currency:
+            description: >-
+              A code allocated to a currency by a Maintenance Agency under an
+              international identification scheme, as described in the latest
+              edition of the international standard ISO 4217 - Codes for the
+              representation of currencies and funds.
+            type: string
+            pattern: '^[A-Z]{3,3}$'
+            required:
+              - Amount
+              - Currency
+      merchant_name:
+        description: >-
+          conditional,only for multi vendor ecommerce users, The name of the
+          merchant/product seller as registered in ecommerce site
+        type: string
+      merchant_bank:
+        $ref: '#/definitions/Bank'
+        
+      merchant_bank_account_data:
+        $ref: '#/definitions/BankAccount'
+      redirect_link:
+        type: string
+        format: uri
+        description: Link URI to redirect the customer to PISP
+    required:
+      - payment_init_req_id
+      - InstructedAmount
+      - merchant_name
+      - merchant_bank
+      - merchant_account_data
+      - redirect_link
+    xml:
+      name: User
+  DeborBank_Account:
+    type: object
+    properties: 
+      debtorBank:
+        $ref: '#/definitions/Bank_1'
+      debtorAccount:
+        $ref: '#/definitions/BankAccount'
+    required:
+      - debtorBank
+      - debtorAccount
+  BankSelectionResponse:    
+    type: object
+    properties:
+      debtorBank:
+        $ref: '#/definitions/Bank_1'
+      debtorAccount:
+        $ref: '#/definitions/BankAccount'
+      redirect_link:
+        type: string
+        description: The link to invoke the authorize end point of the bank
+    required:
+      - redirect_link
+
+
+securityDefinitions:
+  EcommercePaymentsOAuth2Security:
+    type: oauth2
+    flow: application
+    tokenUrl: 'https://www.openbanking.wso2.com/pisp/authserver/token'
+    scopes:
+      payment-init-request: Generic payment-init-request scope
+    description: Ecommerce user client credential authorisation flow with the PISP
+  api_key:
+    type: apiKey
+    name: api_key
+    in: header
+
+    

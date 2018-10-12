@@ -1,0 +1,50 @@
+/*
+ *   Copyright (c) 2018, WSO2 Inc. (http://www.wso2.com). All Rights Reserved.
+ *   This software is the property of WSO2 Inc. and its suppliers, if any.
+ *   Dissemination of any information or reproduction of any material contained
+ *   herein is strictly forbidden, unless permitted by WSO2 in accordance with
+ *   the WSO2 Commercial License available at http://wso2.com/licenses. For specific
+ *   language governing the permissions and limitations under this license,
+ *   please see the license as well as any agreement you’ve entered into with
+ *   WSO2 governing the purchase of this software and any associated services.
+ */
+package pisp.utilities.constants;
+
+//package com.wso2.openbanking.account.aggregator.utilities.constants;
+
+/**
+ * All the constants used in the application is here.
+ */
+public final class Constants {
+
+    // Specific to application
+    public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String DB_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String CONTENT_TYPE = "application/json";
+    public static final String CONTENT_TYPE_HEADER = "Content-Type";
+    public static final String TOKEN_API_CONTENT_TYPE = "application/x-www-form-urlencoded";
+    public static final String SIGNING_ALGORITHM = "SHA-256";
+    public static final String ACCEPT_HEADER = "Accept";
+
+    // Specific to OpenBankingUK. Might have to isolate to extensions.
+    public static final String OPEN_BANKING_UK = "open_banking_uk";
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String AUTHORIZATION_BEARER_HEADER = "Bearer ";
+    public static final String APPLICATION_TOKEN = "Application Token";
+    public static final String GRANT_TYPE = "authorization_code";
+    public static final String GRANT_TYPE_CLIENT = "client_credentials";
+    public static final String RESPONSE_TYPE = "code id_token token";
+    public static final String NONCE = "WSO2AGG-NONCE-NONSENSE";
+    public static final String ACCOUNTS_SCOPE = "accounts am_application_scope";
+    public static final String TOKEN_SCOPE = "accounts";
+    public static final String X_FAPI_INTERACTION_ID_HEADER = "x-fapi-interaction-id";
+    public static final String X_FAPI_FINANCIAL_ID = "x-fapi-financial-id";
+    public static final String X_IDEMPOTENCY_KEY = "x-idempotency-key";
+
+    public static final String SESSION_ID = "SESSIONID";
+
+    // Adding banks to DB
+    public static final String ADD_ACTION = "add";
+    public static final String UPDATE_ACTION = "update";
+    public static final String UPTODATE_ACTION = "upto-date";
+}
